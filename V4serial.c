@@ -16,14 +16,14 @@ void coo2csc(
   uint32_t const         isOneBased /*!< Whether COO is 0- or 1-based */
 );
 
-int mergeArrays(int *arr1, int *arr2, int n1, int n2)
+uint32_t mergeArrays(uint32_t *arr1, uint32_t *arr2, uint32_t n1, uint32_t n2)
 {
-  int i = 0;
-  int j = 0;
-  int k = 0;
-  int clash = 0;
+  uint32_t i = 0;
+  uint32_t j = 0;
+  uint32_t k = 0;
+  uint32_t clash = 0;
 
-  int *arr3 = (int *)malloc((n1+n2) * sizeof(int *));
+  uint32_t *arr3 = (uint32_t *)malloc((n1+n2) * sizeof(uint32_t *));
 
   while (i<n1 && j<n2)
   {
@@ -54,7 +54,7 @@ int mergeArrays(int *arr1, int *arr2, int n1, int n2)
     j++;
   }
 
-  for(int fl=1; fl<n1+n2; fl++)
+  for(uint32_t fl=1; fl<n1+n2; fl++)
   {
     if(arr3[fl-1] == arr3[fl])
       clash++;
@@ -74,9 +74,10 @@ int main(int argc, char *argv[] ) {
 	int ret_code;
 	MM_typecode matcode;
 	FILE *f;
-	int M, N, nz, NNZ;
-	int *I, *J;
-	int *val;
+	uint32_t M, N, nz, NNZ;
+	uint32_t *I, *J;
+	uint32_t *val;
+  uint32_t triangles = 0;
 
 /*
 *	2 arguments for now
@@ -131,16 +132,16 @@ int main(int argc, char *argv[] ) {
 
 	/* reseve memory for matrices */
 
-	I = (int *) malloc(2*nz * sizeof(int));
-	J = (int *) malloc(2*nz * sizeof(int));
-	val = (int *) malloc(2*nz * sizeof(int));
+	I = (uint32_t *) malloc(2*nz * sizeof(int));
+	J = (uint32_t *) malloc(2*nz * sizeof(int));
+	val = (uint32_t *) malloc(2*nz * sizeof(int));
 
 	/* Replace missing or double val column with 1s and change the fscanf to match pattern matrices*/
 
-	int flag = 0;
-	for (int i=0; i<nz; i++)
+	uint32_t flag = 0;
+	for (uint32_t i=0; i<nz; i++)
 	{
-		fscanf(f, "%d %d\n", &I[flag], &J[flag]);
+		fscanf(f, "%u %u\n", &I[flag], &J[flag]);
 		if(I[flag] != J[flag])
 		{
 			val[flag]=1;
@@ -178,7 +179,7 @@ int main(int argc, char *argv[] ) {
 	COL_INDEX[N] = NNZ;
 
 	coo2csc(ROW_INDEX, COL_INDEX, I, J, NNZ, N, 0);
-
+  /*
 	printf("V =");
 	for(int i = 0; i<NNZ; i++)
   {
@@ -200,90 +201,84 @@ int main(int argc, char *argv[] ) {
 		printf(" %d", COL_INDEX[i]);
 	}
 	printf("\n");
-
+  */
 	// vector with number of triangles that corresponds to a node
-	int *c3 = (int *)malloc(N * sizeof(int *));
+	uint32_t *c3 = (uint32_t *)malloc(N * sizeof(uint32_t *));
 
 	// initialize c3
-	for(int i=0; i<N; i++)
+	for(uint32_t i=0; i<N; i++)
 		c3[i] = 0;
 
   // C matrix
-  //int n = N;
-  //int nnz = NNZ;
-  int *c = (int *)malloc(NNZ * sizeof(int));
-	//int *row_index = (int *)malloc(nnz * sizeof(int));
-	//int *col_index = (int *)malloc((n+1) * sizeof(int));
-	//col_index[0] = 0;
-	//col_index[n] = nnz;
-/*
-  for(int i=0; i<nnz; nnz++)
-  {
-    row_index[i] = ROW_INDEX[i];
-    col_index[i] = COL_INDEX[i];
-  }
-*/
-  int elem = 0;
-  int c3idx = 0;
+  //uint32_t *c = (int *)malloc(NNZ * sizeof(uint32_t));
+
+  uint32_t elem = 0;
 
   // masking
-  for(int i=0; i<N; i++)
+  for(uint32_t i=0; i<N; i++)
   {
-    int inumElem = COL_INDEX[i+1] - COL_INDEX[i];
-    printf("i%dnumElem = %d\n", i, inumElem);
+    uint32_t inumElem = COL_INDEX[i+1] - COL_INDEX[i];
+    //printf("i%unumElem = %u\n", i, inumElem);
     if(inumElem > 0)
     {
       // find i's neighbours
-      int *cineigh = (int *)malloc(inumElem * sizeof(int *));
-      printf("cineigh =");
-      for(int flag = 0; flag<inumElem; flag++)
+      uint32_t *cineigh = (uint32_t *)malloc(inumElem * sizeof(uint32_t *));
+      //printf("cineigh =");
+      for(uint32_t flag = 0; flag<inumElem; flag++)
       {
-        int index = COL_INDEX[i] + flag;
+        uint32_t index = COL_INDEX[i] + flag;
         cineigh[flag] = ROW_INDEX[index];
-        printf(" %d", cineigh[flag]);
+        //printf(" %u", cineigh[flag]);
       }
-      printf("\n");
+      //printf("\n");
 
       // for column i, find j's of  i's elements
-      for(int fl=0; fl<inumElem; fl++)
+      for(uint32_t fl=0; fl<inumElem; fl++)
       {
-        int index = COL_INDEX[i] + fl;
-        int j = ROW_INDEX[index];
+        uint32_t index = COL_INDEX[i] + fl;
+        uint32_t j = ROW_INDEX[index];
 
         // find j's neighbours
-        int jnumElem = COL_INDEX[j+1] - COL_INDEX[j];
+        uint32_t jnumElem = COL_INDEX[j+1] - COL_INDEX[j];
         if(jnumElem > 0)
         {
-          printf("j%dnumElem = %d\n", j, jnumElem);
-          int *cjneigh = (int *)malloc(jnumElem * sizeof(int *));
-          printf("cjneigh =");
-          for(int flag = 0; flag<jnumElem; flag++)
+          //printf("j%unumElem = %u\n", j, jnumElem);
+          uint32_t *cjneigh = (uint32_t *)malloc(jnumElem * sizeof(uint32_t *));
+          //printf("cjneigh =");
+          for(uint32_t flag = 0; flag<jnumElem; flag++)
           {
-            int index2 = COL_INDEX[j] + flag;
+            uint32_t index2 = COL_INDEX[j] + flag;
             cjneigh[flag] = ROW_INDEX[index2];
-            printf(" %d", cjneigh[flag]);
+            //printf(" %u", cjneigh[flag]);
           }
-          printf("\n");
+          //printf("\n");
 
-          c[elem] = mergeArrays(cineigh, cjneigh, inumElem, jnumElem);
-          printf("c[%d] = %d\n", elem ,c[elem]);
-          c3[i] = c3[i] + c[elem];
-          elem++;
+          int celem = mergeArrays(cineigh, cjneigh, inumElem, jnumElem);
+          //printf("c[%u] = %u\n", elem ,celem);
+          c3[i] = c3[i] + celem;
+          //elem++;
         }
       }
     }
     c3[i] = c3[i]/2;
   }
-
+  /*
   printf("v =");
-	for(int i = 0; i<NNZ; i++) {
+	for(uint32_t i = 0; i<NNZ; i++) {
 		printf(" %d", c[i]);
 	}
 	printf("\n");
+*/
+  for(uint32_t i=0; i<N; i++)
+		triangles = triangles + c3[i];
+
+  triangles = triangles/3;
+
+  printf("%u\n", triangles);
 
   printf("c3 =");
-	for(int i = 0; i<N; i++) {
-		printf(" %d", c3[i]);
+	for(uint32_t i = 0; i<N; i++) {
+		printf(" %u", c3[i]);
 	}
 	printf("\n");
 
